@@ -1,52 +1,75 @@
 const bodyParser = require('body-parser');
 const express = require('express');
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+const util = require('./util');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT;
 
-passport.serializeUser((user, done) => {
-  done(null, user);
-});
-
-passport.deserializeUser((user, done) => {
-  done(null, user);
-});
-
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: 'http://localhost:3000/auth/google/callback',
-}, (accessToken, refreshToken, profile, done) => {
-  console.log(accessToken, refreshToken, profile);
-
-  // Todo - verify user against database ?
-  done(null, profile);
-}));
+app.disable('x-powered-by');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(passport.initialize());
 
-app.get('/auth/google',
-  passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login'] }));
 
-app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login/fail' }),
-  (req, res) => {
-    res.redirect('/login/sucess');
+app.post('/signup', (req, res) => {
+  const { username, password } = req.query;
+  util.hashPassword(password, (hashErr, hashedPassword) => {
+    if (hashErr) {
+      return res.status(500).send('Hash error!');
+    }
+
+    const user = {
+      password: hashedPassword,
+      username,
+    };
+
+    return util.findUser({ username }, (findUserErr, existingUser) => {
+      if (findUserErr) {
+        return res.status(500).send('Database error!');
+      } else if (existingUser) {
+        return res.status(403).send('User already exists.');
+      }
+
+      return util.saveUser(user, (saveUserErr, savedUser) => {
+        if (saveUserErr) {
+          return res.status(500).send('Database error!');
+        }
+
+        return res.send(savedUser);
+      });
+    });
   });
-
-app.get('/login/fail', (req, res) => {
-  res.send('Login Failed');
 });
 
+app.get('/login', (req, res) => {
+  const { username, password } = req.query;
+  const user = {
+    username,
+  };
 
-app.get('/login/sucess', (req, res) => {
-  res.send('Login sucess');
+  util.findUser(user, (findUserErr, savedUser) => {
+    if (findUserErr) {
+      return res.status(500).send('Database error!');
+    } else if (savedUser) {
+      return util.comparePassword(password, savedUser.password, (compareErr, isAuthenticated) => {
+        if (compareErr) {
+          return res.status(500).send('Bcrypt error!');
+        } else if (isAuthenticated) {
+          const EXPIRES_IN = '1d';
+          const payload = {
+            iss: process.env.hostname,
+            username,
+          };
+          return res.json(util.createJWT(payload, EXPIRES_IN));
+        }
+        return res.status(401).send('Unauthorized.');
+      });
+    }
+
+    return res.status(403).send('No user found!');
+  });
 });
 
 app.listen(port, () => {
-  console.log('Example app listening on port 3000!');
+  console.log(`Livermore auth server is listening to port ${port}`);
 });
