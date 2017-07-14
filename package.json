@@ -1,0 +1,36 @@
+{
+  "name": "livermore",
+  "version": "1.0.0",
+  "description": "Auth server.",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ehdwn1212/livermore.git"
+  },
+  "author": "Anukul Shenoy, DJ Kim, and Savy Brandt",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ehdwn1212/livermore/issues"
+  },
+  "homepage": "https://github.com/ehdwn1212/livermore#readme",
+  "devDependencies": {
+    "eslint": "3.19.0",
+    "eslint-config-airbnb": "15.0.1",
+    "eslint-plugin-import": "2.6.0",
+    "eslint-plugin-jsx-a11y": "5.0.3",
+    "eslint-plugin-react": "7.1.0",
+    "nodemon": "1.11.0"
+  },
+  "dependencies": {
+    "bcrypt": "^1.0.2",
+    "body-parser": "1.17.2",
+    "express": "4.15.3",
+    "jsonwebtoken": "7.4.1",
+    "mongoose": "4.11.1"
+  }
+}
