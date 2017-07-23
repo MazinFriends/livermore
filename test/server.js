@@ -1,5 +1,6 @@
 /* eslint-disable */
 
+// TODO: Implement testing
 process.env.MONGO_HOSTNAME = 'localhost';
 process.env.MONGO_PORT = 27017;
 process.env.NODE_ENV = 'test';
