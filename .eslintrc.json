@@ -4,6 +4,6 @@
     "func-names": ["error", "never"],
     "import/no-extraneous-dependencies": ["error", {"devDependencies": true, "optionalDependencies": true, "peerDependencies": true}],
     "no-console": "off",
-   	"no-else-return": "off"
+    "no-else-return": "off"
   }
 }
