@@ -1,18 +1,28 @@
-const Hapi = require('hapi');
-const Inert = require('inert');
-const Vision = require('vision');
 const Good = require('good');
+const Hapi = require('hapi');
 const HapiSwagger = require('hapi-swagger');
+const Inert = require('inert');
 const Package = require('../package.json');
+const routes = require('./routes');
+const Vision = require('vision');
 
 const server = new Hapi.Server();
-const routes = require('./routes');
-
 server.connection({ port: process.env.PORT });
 
-server.register([
+const plugins = [
   Inert,
   Vision, {
+    options: {
+      info: {
+        title: 'Ulsan - JWT Authentication API Documentation',
+        version: Package.version,
+      },
+    },
+    register: HapiSwagger,
+  }];
+
+if (process.env.NODE_ENV !== 'test') {
+  plugins.push({
     register: Good,
     options: {
       reporters: {
@@ -28,15 +38,10 @@ server.register([
         }, 'stdout'],
       },
     },
-  }, {
-    options: {
-      info: {
-        title: 'Ulsan - JWT Authentication API Documentation',
-        version: Package.version,
-      },
-    },
-    register: HapiSwagger,
-  }], (pluginErr) => {
+  });
+}
+
+server.register(plugins, (pluginErr) => {
   if (pluginErr) {
     server.log(pluginErr);
     throw pluginErr;
@@ -46,12 +51,16 @@ server.register([
     server.route(route);
   });
 
-  server.start((startErr) => {
-    if (startErr) {
-      server.log(startErr);
-      throw startErr;
-    }
+  if (process.env.NODE_ENV !== 'test') {
+    server.start((startErr) => {
+      if (startErr) {
+        server.log(startErr);
+        throw startErr;
+      }
 
-    server.log(['info'], `Server running at: ${server.info.uri}`);
-  });
+      server.log(['info'], `Server running at: ${server.info.uri}`);
+    });
+  }
 });
+
+module.exports = server;

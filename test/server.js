@@ -1,45 +1,98 @@
 /* eslint-disable */
 
-// TODO: Implement testing
-process.env.MONGO_HOSTNAME = 'localhost';
-process.env.MONGO_PORT = 27017;
+// TODO - Decide on where/how to put process.env variables
+process.env.MONGO_HOSTNAME = process.env.MONGO_HOSTNAME || 'localhost';
+process.env.MONGO_PORT = process.env.MONGO_PORT || 27017;
 process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'sampleJwtSecret';
 
-const chai = require('chai');
-const chaiHttp = require('chai-http');
+const hapiTest = require('hapi-test');
+const {assert, expect} = require('chai');
 const server = require('../src/server');
 const User = require('../src/db/user_model');
 
-const should = chai.should();
+// TODO - Decide on which username/password to use to test
+const username = 'gUPuyxbnuSZXviBoFaPAhGnssIHDMMivLpp6am6zGWw2Oi7SDwjjTnWAEChKhAC5cWfho0VxayDI5UDpC37YrpmRNxSx9ksDghaK';
+const password = 'real';
 
-const testUsername = 'asdfousadifuasdofias7dif7a7sdofasdfasdf';
-const testPassword = 'asdf3257234v;@#$234234234234';
+const fakeUsername = '5Q6mSb8OKev7Tkh3jMWp54IPhoF36nS9yPu7LmZoUljRB5s15Q8kEJfVfNsvYUyR9PHfZlbVALm83PwZWbKgKmx3L24XdP8TId7z';
+const fakePassword = 'fake';
 
+const SIGNUP_URL = '/user';
+const LOGIN_URL = '/user';
+const DELETE_USER_URL = '/user';
 
-chai.use(chaiHttp);
+describe('User', () => {
+  before((done) => {
+    hapiTest({ server })
+      .delete(`${DELETE_USER_URL}?username=${username}&password=${password}`, {
+        password,
+        username,
+      })
+      .end((result) => {
+        if (result.statusCode === 200 || result.statusCode === 404) {
+          done();
+        }
+      })
+  });
 
-describe('Users', () => {
-  beforeEach(async (done) => {
-    const ZERO = 0;
-    try {
-      const userArr = await User.find({
-        username: testUsername,
-      });
-      return userArr;
-    } catch (error) {
-      console.log(error);
-    }
+  describe('/POST signup', () => {
+    it('Should create new user', (done) => {
+      hapiTest({ server })
+        .post(SIGNUP_URL, JSON.stringify({
+          password,
+          username,
+        }))
+        .assert(201, done);
+    });
+
+    it('Should not create when username already exists', (done) => {
+      hapiTest({ server })
+        .post(SIGNUP_URL, JSON.stringify({
+          password,
+          username,
+        }))
+        .assert(409, done);
+    });
   });
 
   describe('/GET login', () => {
-      it('Should return no user', (done) => {
-        const query = '?username=asdfaskjdhflasdjhf&password=123421423535235';
-        chai.request(server)
-            .get(`/login${query}`)
-            .end((err, res) => {
-              res.should.have.status(403);
-              done();
-            });
-      });
+    it('Should accept correct credentials', (done) => {
+      hapiTest({ server })
+        .get(`${LOGIN_URL}?username=${username}&password=${password}`)
+        .assert(200, done);
+    });
+
+    it('Should not accept incorrect credentials', (done) => {
+      hapiTest({ server })
+        .get(`${LOGIN_URL}?username=${username}&password=${fakePassword}`)
+        .assert(403, done);
+    });
+
+    it('Should not find non-existent user', (done) => {
+      hapiTest({ server })
+        .get(`${LOGIN_URL}?username=${fakeUsername}&password=${fakePassword}`)
+        .assert(404, done);
+    });
+  });
+
+  describe('/DELETE delete user', () => {
+    it('Should not accept incorrect credentials', (done) => {
+      hapiTest({ server })
+        .delete(`${DELETE_USER_URL}?username=${fakeUsername}&password=${fakePassword}`)
+        .assert(404, done);
+    });
+
+    it('Should accept correct credentials', (done) => {
+      hapiTest({ server })
+        .delete(`${DELETE_USER_URL}?username=${username}&password=${password}`)
+        .assert(200, done);
+    });
+
+    it('Should not find non-existent user', (done) => {
+      hapiTest({ server })
+        .delete(`${DELETE_USER_URL}?username=${fakeUsername}&password=${fakePassword}`)
+        .assert(404, done);
+    });
   });
 });
