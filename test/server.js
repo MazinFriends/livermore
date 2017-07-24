@@ -57,19 +57,19 @@ describe('User', () => {
   });
 
   describe('/GET login', () => {
-    it('Should accept correct credentials', (done) => {
+    it('Should accept correct username and password', (done) => {
       hapiTest({ server })
         .get(`${LOGIN_URL}?username=${username}&password=${password}`)
         .assert(200, done);
     });
 
-    it('Should not accept incorrect credentials', (done) => {
+    it('Should not accept incorrect username and password', (done) => {
       hapiTest({ server })
         .get(`${LOGIN_URL}?username=${username}&password=${fakePassword}`)
         .assert(403, done);
     });
 
-    it('Should not find non-existent user', (done) => {
+    it('Should not find nonexistent user', (done) => {
       hapiTest({ server })
         .get(`${LOGIN_URL}?username=${fakeUsername}&password=${fakePassword}`)
         .assert(404, done);
@@ -77,19 +77,19 @@ describe('User', () => {
   });
 
   describe('/DELETE delete user', () => {
-    it('Should not accept incorrect credentials', (done) => {
+    it('Should not accept incorrect username and password', (done) => {
       hapiTest({ server })
         .delete(`${DELETE_USER_URL}?username=${fakeUsername}&password=${fakePassword}`)
         .assert(404, done);
     });
 
-    it('Should accept correct credentials', (done) => {
+    it('Should accept correct username and password', (done) => {
       hapiTest({ server })
         .delete(`${DELETE_USER_URL}?username=${username}&password=${password}`)
         .assert(200, done);
     });
 
-    it('Should not find non-existent user', (done) => {
+    it('Should not find nonexistent user', (done) => {
       hapiTest({ server })
         .delete(`${DELETE_USER_URL}?username=${fakeUsername}&password=${fakePassword}`)
         .assert(404, done);
