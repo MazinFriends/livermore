@@ -15,7 +15,7 @@ const routes = [{
     },
   },
   method: 'GET',
-  path: '/user/login',
+  path: '/user',
 }, {
   config: {
     description: 'User signup',
@@ -30,7 +30,22 @@ const routes = [{
     },
   },
   method: 'POST',
-  path: '/user/signup',
+  path: '/user',
+}, {
+  config: {
+    description: 'User delete',
+    handler: handlers.deleteUser,
+    notes: 'Deletes user with username and password',
+    tags: ['api'],
+    validate: {
+      query: {
+        username: Joi.string().required(),
+        password: Joi.string().required(),
+      },
+    },
+  },
+  method: 'DELETE',
+  path: '/user',
 }];
 
 module.exports = routes;

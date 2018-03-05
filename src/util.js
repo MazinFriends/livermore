@@ -23,9 +23,14 @@ const saveUser = (user, callback) => {
   User.create(user, callback);
 };
 
+const deleteUser = (user, callback) => {
+  User.remove(user, callback);
+};
+
 module.exports = {
   comparePassword,
   createJWT,
+  deleteUser,
   findUser,
   hashPassword,
   saveUser,
